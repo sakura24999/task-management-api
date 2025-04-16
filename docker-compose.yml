@@ -1,0 +1,60 @@
+
+services:
+  # PHPアプリケーションサービス
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - task-network
+    depends_on:
+      - db
+
+  # Nginxサービス
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: task-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - task-network
+    depends_on:
+      - app
+
+  # MySQLサービス
+  db:
+    image: mysql:8.0
+    container_name: task-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: task_management
+      MYSQL_ROOT_PASSWORD: task_password
+      MYSQL_PASSWORD: task_password
+      MYSQL_USER: task_user
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - task-db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - task-network
+
+# ネットワーク定義
+networks:
+  task-network:
+    driver: bridge
+
+# ボリューム定義
+volumes:
+  task-db-data:
+    driver: local
