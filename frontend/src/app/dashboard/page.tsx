@@ -35,11 +35,38 @@ export default function Dashboard() {
   const [filterCategory, setFilterCategory] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!loading && user) {
-      fetchTasks();
-      fetchCategories();
-    }
-  }, [loading, user]);
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/categories');
+        console.log('カテゴリーAPIレスポンス:', response.data);
+
+        // レスポンスデータの形式を確認
+        let categoriesData = response.data;
+
+        // データがネストされている場合
+        if (response.data && response.data.data) {
+          categoriesData = response.data.data;
+        }
+
+        // 配列でない場合は空配列をセット
+        if (!Array.isArray(categoriesData)) {
+          console.error('カテゴリーデータが配列ではありません:', categoriesData);
+          setCategories([]);
+          return;
+        }
+
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('カテゴリー取得エラー:', error);
+        setCategories([]);
+      }
+    };
+    // タスク取得関数を呼び出す
+    fetchTasks();
+
+    // カテゴリー取得関数を呼び出す
+    fetchCategories();
+  }, []);
 
   const fetchTasks = async () => {
     setIsLoading(true);
@@ -52,16 +79,6 @@ export default function Dashboard() {
       setError(errorData.message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await api.get('/categories');
-      setCategories(response.data);
-    } catch (err) {
-      // カテゴリー取得エラーは致命的ではないので無視
-      console.error('カテゴリー取得エラー:', err);
     }
   };
 

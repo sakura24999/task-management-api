@@ -33,3 +33,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // カテゴリー関連
     Route::apiResource('categories', CategoryController::class);
 });
+
+// テスト用エンドポイント（認証不要）
+Route::get('/test', function () {
+    return response()->json([
+        'message' => 'APIサーバーに接続できました',
+        'status' => 'success',
+        'timestamp' => now()->toDateTimeString(),
+        'server_info' => [
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+        ]
+    ]);
+});
+
